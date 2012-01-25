@@ -113,91 +113,91 @@ os_init(const char *argv[], const char *envp[])
 }
 
 #if defined(__ppc__)
-int *
+unsigned long *
 sc_reg(os_context_t * context, int offset)
 {
-    ppc_saved_state_t *state = &context->uc_mcontext->ss;
+    _STRUCT_PPC_THREAD_STATE *state = &context->uc_mcontext->__ss;
 
     switch (offset) {
       case 0:
-	  return &state->r0;
+	  return (unsigned long *) &state->__r0;
       case 1:
-	  return &state->r1;
+	  return (unsigned long *) &state->__r1;
       case 2:
-	  return &state->r2;
+	  return (unsigned long *) &state->__r2;
       case 3:
-	  return &state->r3;
+	  return (unsigned long *) &state->__r3;
       case 4:
-	  return &state->r4;
+	  return (unsigned long *) &state->__r4;
       case 5:
-	  return &state->r5;
+	  return (unsigned long *) &state->__r5;
       case 6:
-	  return &state->r6;
+	  return (unsigned long *) &state->__r6;
       case 7:
-	  return &state->r7;
+	  return (unsigned long *) &state->__r7;
       case 8:
-	  return &state->r8;
+	  return (unsigned long *) &state->__r8;
       case 9:
-	  return &state->r9;
+	  return (unsigned long *) &state->__r9;
       case 10:
-	  return &state->r10;
+	  return (unsigned long *) &state->__r10;
       case 11:
-	  return &state->r11;
+	  return (unsigned long *) &state->__r11;
       case 12:
-	  return &state->r12;
+	  return (unsigned long *) &state->__r12;
       case 13:
-	  return &state->r13;
+	  return (unsigned long *) &state->__r13;
       case 14:
-	  return &state->r14;
+	  return (unsigned long *) &state->__r14;
       case 15:
-	  return &state->r15;
+	  return (unsigned long *) &state->__r15;
       case 16:
-	  return &state->r16;
+	  return (unsigned long *) &state->__r16;
       case 17:
-	  return &state->r17;
+	  return (unsigned long *) &state->__r17;
       case 18:
-	  return &state->r18;
+	  return (unsigned long *) &state->__r18;
       case 19:
-	  return &state->r19;
+	  return (unsigned long *) &state->__r19;
       case 20:
-	  return &state->r20;
+	  return (unsigned long *) &state->__r20;
       case 21:
-	  return &state->r21;
+	  return (unsigned long *) &state->__r21;
       case 22:
-	  return &state->r22;
+	  return (unsigned long *) &state->__r22;
       case 23:
-	  return &state->r23;
+	  return (unsigned long *) &state->__r23;
       case 24:
-	  return &state->r24;
+	  return (unsigned long *) &state->__r24;
       case 25:
-	  return &state->r25;
+	  return (unsigned long *) &state->__r25;
       case 26:
-	  return &state->r26;
+	  return (unsigned long *) &state->__r26;
       case 27:
-	  return &state->r27;
+	  return (unsigned long *) &state->__r27;
       case 28:
-	  return &state->r28;
+	  return (unsigned long *) &state->__r28;
       case 29:
-	  return &state->r29;
+	  return (unsigned long *) &state->__r29;
       case 30:
-	  return &state->r30;
+	  return (unsigned long *) &state->__r30;
       case 31:
-	  return &state->r31;
+	  return (unsigned long *) &state->__r31;
       case 34:
 	  /*
 	   * Not sure if this is really defined anywhere, but after
 	   * r31 is cr, xer, lr, and ctr.  So we let 34 be lr.
 	   */
-	  return &state->lr;
+	  return (unsigned long *) &state->__lr;
       case 35:
-	  return &state->ctr;
+	  return (unsigned long *) &state->__ctr;
       case 41:
-	  return &context->uc_mcontext->es.dar;
+	  return &context->uc_mcontext->__es.__dar;
       case 42:
-	  return &context->uc_mcontext->es.dsisr;
+	  return &context->uc_mcontext->__es.__dsisr;
     }
 
-    return (int *) 0;
+    return (unsigned long *) 0;
 }
 #elif defined(__i386__)
 #if __DARWIN_UNIX03
@@ -465,23 +465,25 @@ sigbus_handle_now(HANDLER_ARGS)
 static void
 sigbus_handler(HANDLER_ARGS)
 {
+    os_context_t *os_context = (os_context_t *) context;
+    
 #if defined(GENCGC)
     caddr_t fault_addr = code->si_addr;
 #endif
     
 #ifdef RED_ZONE_HIT
-    if (os_control_stack_overflow((void *) fault_addr, context))
+    if (os_control_stack_overflow((void *) fault_addr, os_context))
 	return;
 #endif
 
 #ifdef __ppc__
     DPRINTF(0, (stderr, "sigbus:\n"));
-    DPRINTF(0, (stderr, " PC       = %p\n", SC_PC(context)));
-    DPRINTF(0, (stderr, " ALLOC-TN = %p\n", SC_REG(context, reg_ALLOC)));
-    DPRINTF(0, (stderr, " CODE-TN  = %p\n", SC_REG(context, reg_CODE)));
-    DPRINTF(0, (stderr, " LRA-TN   = %p\n", SC_REG(context, reg_LRA)));
-    DPRINTF(0, (stderr, " CFP-TN   = %p\n", SC_REG(context, reg_CFP)));
-    DPRINTF(0, (stderr, " FDEFN-TN = %p\n", SC_REG(context, reg_FDEFN)));
+    DPRINTF(0, (stderr, " PC       = %p\n", SC_PC(os_context)));
+    DPRINTF(0, (stderr, " ALLOC-TN = %p\n", SC_REG(os_context, reg_ALLOC)));
+    DPRINTF(0, (stderr, " CODE-TN  = %p\n", SC_REG(os_context, reg_CODE)));
+    DPRINTF(0, (stderr, " LRA-TN   = %p\n", SC_REG(os_context, reg_LRA)));
+    DPRINTF(0, (stderr, " CFP-TN   = %p\n", SC_REG(os_context, reg_CFP)));
+    DPRINTF(0, (stderr, " FDEFN-TN = %p\n", SC_REG(os_context, reg_FDEFN)));
     DPRINTF(0, (stderr, " foreign_function_call = %d\n", foreign_function_call_active));
 #endif
     
@@ -493,17 +495,17 @@ sigbus_handler(HANDLER_ARGS)
     if (gc_write_barrier(code->si_addr))
 	 return;
 #else
-    if (interrupt_maybe_gc(signal, code, context))
+    if (interrupt_maybe_gc(signal, code, os_context))
 	return;
 #endif
 
     /* a *real* protection fault */
     fprintf(stderr, "sigbus_handler: Real protection violation at %p, PC = %p\n",
-            fault_addr, (void *) SC_PC(context));
-    sigbus_handle_now(signal, code, context);
+            fault_addr, (void *) SC_PC(os_context));
+    sigbus_handle_now(signal, code, os_context);
 #ifdef __ppc__
     /* Work around G5 bug; fix courtesy gbyers via chandler */
-    sigreturn(context);
+    sigreturn(os_context);
 #endif
 }
 

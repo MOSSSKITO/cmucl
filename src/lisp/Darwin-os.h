@@ -35,7 +35,7 @@ typedef int os_vm_prot_t;
 #define RESTORE_FPU(context) restore_fpu(context)
 #endif
 
-int *sc_reg(os_context_t *, int);
+unsigned long *sc_reg(os_context_t *, int);
 void restore_fpu(ucontext_t *);
 
 #define PROTECTION_VIOLATION_SIGNAL SIGBUS

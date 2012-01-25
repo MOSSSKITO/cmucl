@@ -282,6 +282,7 @@
     :key-and-value
     :key-or-value
     
+    lisp::*unidata-path*
     ;; Spare symbols.  Rename these when you need to add some static
     ;; symbols and don't want to do a cross-compile.
     sparc-9

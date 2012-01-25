@@ -69,7 +69,7 @@
 ;;; double.  That way, C programs can get subtle rounding errors
 ;;; when unrelated arguments are introduced.
 
-#-darwin
+#-(and nil darwin)
 (def-alien-type-method (single-float :arg-tn) (type state)
   (declare (ignore type))
   (let* ((fprs (arg-state-fpr-args state)))
@@ -84,7 +84,7 @@
 	     (setf (arg-state-stack-frame-size state) (+ stack-offset 2))
 	     (my-make-wired-tn 'double-float 'double-stack stack-offset))))))
 
-#+darwin
+#+(and nil darwin)
 (def-alien-type-method (single-float :arg-tn) (type state)
   (declare (ignore type))
   (let* ((fprs (arg-state-fpr-args state))
@@ -114,7 +114,7 @@
 	     (incf (arg-state-stack-frame-size state))
 	     (my-make-wired-tn 'single-float 'single-stack stack-offset))))))
 
-#-darwin
+#-(and nil darwin)
 (def-alien-type-method (double-float :arg-tn) (type state)
   (declare (ignore type))
   (let* ((fprs (arg-state-fpr-args state)))
@@ -129,7 +129,7 @@
 	     (setf (arg-state-stack-frame-size state) (+ stack-offset 2))
 	     (my-make-wired-tn 'double-float 'double-stack stack-offset))))))
 	   
-#+darwin
+#+(and nil darwin)
 (def-alien-type-method (double-float :arg-tn) (type state)
   (declare (ignore type))
   (let ((fprs (arg-state-fpr-args state))

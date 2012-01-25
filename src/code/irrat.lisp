@@ -220,7 +220,7 @@
 
 )
 
-#+(or ppc sse2)
+#+(or (not ppc) sse2)
 (progn
 (declaim (inline %%sin %%cos %%tan))
 (macrolet ((frob (alien-name lisp-name)
@@ -231,7 +231,17 @@
   (frob "tan" %%tan))
 )
 
-#+(or ppc x86)
+#+ppc
+(progn
+(macrolet ((frob (alien-name lisp-name)
+	     `(alien:def-alien-routine (,alien-name ,lisp-name) double-float
+		(x double-float))))
+  (frob "sin" sin)
+  (frob "cos" cos)
+  (frob "tan" tan))
+)
+
+#+(or (not ppc) x86)
 (macrolet
     ((frob (sin cos tan)
        `(progn
@@ -287,7 +297,6 @@
   (frob %sin-quick %cos-quick %tan-quick)
   #+(or ppc sse2)
   (frob %%sin %%cos %%tan))
-
 
 
 ;;;; Power functions.
