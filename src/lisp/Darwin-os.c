@@ -14,7 +14,7 @@
  * Frobbed for OpenBSD by Pierre R. Mai, 2001.
  * Frobbed for Darwin by Pierre R. Mai, 2003.
  *
- * $Header: /Volumes/share2/src/cmucl/cvs2git/cvsroot/src/lisp/Darwin-os.c,v 1.35 2011/09/03 04:46:34 rtoy Exp $
+ * $Header: /project/cmucl/cvsroot/src/lisp/Darwin-os.c,v 1.16.4.3 2009-03-18 15:37:29 rtoy Exp $
  *
  */
 
@@ -99,6 +99,7 @@ timebase_init(void)
 }
 #endif
 
+
 void
 os_init0(const char *argv[], const char *envp[])
 {}
@@ -112,92 +113,137 @@ os_init(const char *argv[], const char *envp[])
 #endif
 }
 
+
 #if defined(__ppc__)
-unsigned long *
+#if __DARWIN_UNIX03
+  /* Nothing needed for 10.5 */
+#else
+/* For 10.4 */
+#define __ss ss
+#define __r0 r0
+#define __r1 r1
+#define __r2 r2
+#define __r3 r3
+#define __r4 r4
+#define __r5 r5
+#define __r6 r6
+#define __r7 r7
+#define __r8 r8
+#define __r9 r9
+#define __r10 r10
+#define __r11 r11
+#define __r12 r12
+#define __r13 r13
+#define __r14 r14
+#define __r15 r15
+#define __r16 r16
+#define __r17 r17
+#define __r18 r18
+#define __r19 r19
+#define __r20 r20
+#define __r21 r21
+#define __r22 r22
+#define __r23 r23
+#define __r24 r24
+#define __r25 r25
+#define __r26 r26
+#define __r27 r27
+#define __r28 r28
+#define __r29 r29
+#define __r30 r30
+#define __r31 r31
+#define __lr lr
+#define __ctr ctr
+#define __es es
+#define __dar dar
+#define __dsisr dsisr
+#endif
+
+unsigned int *
 sc_reg(os_context_t * context, int offset)
 {
     _STRUCT_PPC_THREAD_STATE *state = &context->uc_mcontext->__ss;
 
     switch (offset) {
       case 0:
-	  return (unsigned long *) &state->__r0;
+	  return &state->__r0;
       case 1:
-	  return (unsigned long *) &state->__r1;
+	  return &state->__r1;
       case 2:
-	  return (unsigned long *) &state->__r2;
+	  return &state->__r2;
       case 3:
-	  return (unsigned long *) &state->__r3;
+	  return &state->__r3;
       case 4:
-	  return (unsigned long *) &state->__r4;
+	  return &state->__r4;
       case 5:
-	  return (unsigned long *) &state->__r5;
+	  return &state->__r5;
       case 6:
-	  return (unsigned long *) &state->__r6;
+	  return &state->__r6;
       case 7:
-	  return (unsigned long *) &state->__r7;
+	  return &state->__r7;
       case 8:
-	  return (unsigned long *) &state->__r8;
+	  return &state->__r8;
       case 9:
-	  return (unsigned long *) &state->__r9;
+	  return &state->__r9;
       case 10:
-	  return (unsigned long *) &state->__r10;
+	  return &state->__r10;
       case 11:
-	  return (unsigned long *) &state->__r11;
+	  return &state->__r11;
       case 12:
-	  return (unsigned long *) &state->__r12;
+	  return &state->__r12;
       case 13:
-	  return (unsigned long *) &state->__r13;
+	  return &state->__r13;
       case 14:
-	  return (unsigned long *) &state->__r14;
+	  return &state->__r14;
       case 15:
-	  return (unsigned long *) &state->__r15;
+	  return &state->__r15;
       case 16:
-	  return (unsigned long *) &state->__r16;
+	  return &state->__r16;
       case 17:
-	  return (unsigned long *) &state->__r17;
+	  return &state->__r17;
       case 18:
-	  return (unsigned long *) &state->__r18;
+	  return &state->__r18;
       case 19:
-	  return (unsigned long *) &state->__r19;
+	  return &state->__r19;
       case 20:
-	  return (unsigned long *) &state->__r20;
+	  return &state->__r20;
       case 21:
-	  return (unsigned long *) &state->__r21;
+	  return &state->__r21;
       case 22:
-	  return (unsigned long *) &state->__r22;
+	  return &state->__r22;
       case 23:
-	  return (unsigned long *) &state->__r23;
+	  return &state->__r23;
       case 24:
-	  return (unsigned long *) &state->__r24;
+	  return &state->__r24;
       case 25:
-	  return (unsigned long *) &state->__r25;
+	  return &state->__r25;
       case 26:
-	  return (unsigned long *) &state->__r26;
+	  return &state->__r26;
       case 27:
-	  return (unsigned long *) &state->__r27;
+	  return &state->__r27;
       case 28:
-	  return (unsigned long *) &state->__r28;
+	  return &state->__r28;
       case 29:
-	  return (unsigned long *) &state->__r29;
+	  return &state->__r29;
       case 30:
-	  return (unsigned long *) &state->__r30;
+	  return &state->__r30;
       case 31:
-	  return (unsigned long *) &state->__r31;
+	  return &state->__r31;
       case 34:
 	  /*
 	   * Not sure if this is really defined anywhere, but after
 	   * r31 is cr, xer, lr, and ctr.  So we let 34 be lr.
 	   */
-	  return (unsigned long *) &state->__lr;
+	  return &state->__lr;
       case 35:
-	  return (unsigned long *) &state->__ctr;
+	  return &state->__ctr;
       case 41:
 	  return &context->uc_mcontext->__es.__dar;
       case 42:
 	  return &context->uc_mcontext->__es.__dsisr;
     }
 
-    return (unsigned long *) 0;
+    return (unsigned int *) 0;
 }
 #elif defined(__i386__)
 #if __DARWIN_UNIX03
@@ -290,21 +336,21 @@ os_sigcontext_fpu_reg(ucontext_t *scp, int index)
 	return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_stmm7;
 #ifdef FEATURE_SSE2
     case 8:
-	return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_xmm0;
+       return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_xmm0;
     case 9:
-	return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_xmm1;
+       return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_xmm1;
     case 10:
-	return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_xmm2;
+       return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_xmm2;
     case 11:
-	return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_xmm3;
+       return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_xmm3;
     case 12:
-	return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_xmm4;
+       return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_xmm4;
     case 13:
-	return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_xmm5;
+       return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_xmm5;
     case 14:
-	return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_xmm6;
+       return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_xmm6;
     case 15:
-	return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_stmm7;
+       return (unsigned char *) &scp->uc_mcontext->__fs.__fpu_stmm7;
 #endif
     }
     return NULL;
@@ -466,14 +512,13 @@ static void
 sigbus_handler(HANDLER_ARGS)
 {
     os_context_t *os_context = (os_context_t *) context;
-    
 #if defined(GENCGC)
     caddr_t fault_addr = code->si_addr;
 #endif
     
 #ifdef RED_ZONE_HIT
     if (os_control_stack_overflow((void *) fault_addr, os_context))
-	return;
+       return;
 #endif
 
 #ifdef __ppc__
@@ -489,8 +534,8 @@ sigbus_handler(HANDLER_ARGS)
     
 #if defined(GENCGC)
 #if defined(SIGSEGV_VERBOSE)
-    fprintf(stderr, "Signal %d, fault_addr=%x\n",
-	    signal, fault_addr);
+    fprintf(stderr, "Signal %d, fault_addr=%x, page_index=%d:\n",
+	    signal, fault_addr, page_index);
 #endif
     if (gc_write_barrier(code->si_addr))
 	 return;
@@ -498,7 +543,6 @@ sigbus_handler(HANDLER_ARGS)
     if (interrupt_maybe_gc(signal, code, os_context))
 	return;
 #endif
-
     /* a *real* protection fault */
     fprintf(stderr, "sigbus_handler: Real protection violation at %p, PC = %p\n",
             fault_addr, (void *) SC_PC(os_context));

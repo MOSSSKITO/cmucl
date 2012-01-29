@@ -7,7 +7,7 @@
  *
  * Douglas Crosher, 1996, 1997, 1998, 1999.
  *
- * $Header: /Volumes/share2/src/cmucl/cvs2git/cvsroot/src/lisp/gencgc.c,v 1.112 2011/01/09 00:12:36 rtoy Exp $
+ * $Header: /project/cmucl/cvsroot/src/lisp/gencgc.c,v 1.112 2011-01-09 00:12:36 rtoy Exp $
  *
  */
 
@@ -2077,6 +2077,14 @@ other_space_p(lispobj obj)
     if (obj == (lispobj) 0xffffffe9) {
         in_space = TRUE;
     }
+#elif defined(__ppc__)
+    /*
+     * For ppc, just ignore anything below fpu_restore, which is
+     * currently at the end of ppc-assem.S.
+     */
+    if (obj <= (lispobj) &fpu_restore) {
+        in_space = TRUE;
+    }
 #endif
 #endif  
 
@@ -2710,11 +2718,11 @@ scavenge_interrupt_context(os_context_t * context)
 #endif    
 
 #ifdef reg_LR
-    PAIR_INTERIOR_POINTER(pc, SC_REG(context, reg_LR));
+    PAIR_INTERIOR_POINTER(lr, SC_REG(context, reg_LR));
 #endif
 
 #ifdef reg_CTR
-    PAIR_INTERIOR_POINTER(pc, SC_REG(context, reg_CTR));
+    PAIR_INTERIOR_POINTER(ctr, SC_REG(context, reg_CTR));
 #endif    
     
     /* Scanvenge all boxed registers in the context. */
@@ -7317,7 +7325,7 @@ garbage_collect_generation(int generation, int raise)
 
 #ifdef GC_ASSERTIONS
 #if defined(i386) || defined(__x86_64)
-    invalid_stack_start = (void *) CONTROL_STACK_START;
+    invalid_stack_start = (void *) control_stack_start;
     invalid_stack_end = (void *) &raise;
 #else /* not i386 */
     invalid_stack_start = (void *) &raise;

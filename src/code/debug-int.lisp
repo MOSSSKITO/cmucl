@@ -5,7 +5,7 @@
 ;;; Carnegie Mellon University, and has been placed in the public domain.
 ;;;
 (ext:file-comment
-  "$Header: src/code/debug-int.lisp $")
+  "$Header: /project/cmucl/cvsroot/src/code/debug-int.lisp,v 1.142 2010-07-14 23:08:59 rtoy Exp $")
 ;;;
 ;;; **********************************************************************
 ;;;
@@ -3079,7 +3079,7 @@ The result is a symbol or nil if the routine cannot be found."
 ;;; SUB-ACCESS-DEBUG-VAR-SLOT -- Internal.
 ;;;
 #-(or x86 amd64)
-(intl:with-textdomain ("cmucl" #+sparc "cmucl-sparc-svr4" #+ppc "cmucl-pps")
+(intl:with-textdomain ("cmucl" #+sparc "cmucl-sparc-svr4" #+ppc "cmucl-ppc")
 (defun sub-access-debug-var-slot (fp sc-offset &optional escaped)
   (macrolet ((with-escaped-value ((var) &body forms)
 	       `(if escaped

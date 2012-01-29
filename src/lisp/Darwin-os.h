@@ -1,6 +1,6 @@
 /*
 
- $Header: /Volumes/share2/src/cmucl/cvs2git/cvsroot/src/lisp/Darwin-os.h,v 1.8 2011/01/09 00:12:36 rtoy Exp $
+ $Header: /project/cmucl/cvsroot/src/lisp/Darwin-os.h,v 1.7 2008-01-03 11:41:54 cshapiro Exp $
 
  This code was written as part of the CMU Common Lisp project at
  Carnegie Mellon University, and has been placed in the public domain.
@@ -35,7 +35,11 @@ typedef int os_vm_prot_t;
 #define RESTORE_FPU(context) restore_fpu(context)
 #endif
 
-unsigned long *sc_reg(os_context_t *, int);
+#ifdef __ppc__
+unsigned int *sc_reg(os_context_t *, int);
+#else
+int *sc_reg(os_context_t *, int);
+#endif
 void restore_fpu(ucontext_t *);
 
 #define PROTECTION_VIOLATION_SIGNAL SIGBUS
