@@ -27,6 +27,7 @@
 #include "interr.h"
 #include "gencgc.h"
 
+#define inline
 /*
  * This value in a hash table hash-vector means that the key uses
  * EQ-based hashing.  That is, the key might be using EQ or EQL for
@@ -8019,6 +8020,9 @@ alloc(int nbytes)
 	    clr_pseudo_atomic_atomic();
 	    if (get_pseudo_atomic_interrupted())
 		do_pending_interrupt();
+#if 0
+            fprintf(stderr, "%s:  MAYBE_GC from alloc(%d)\n", __FUNCTION__, nbytes);
+#endif
 	    funcall0(SymbolFunction(MAYBE_GC));
 	    clr_pseudo_atomic_interrupted();
 	    set_pseudo_atomic_atomic();

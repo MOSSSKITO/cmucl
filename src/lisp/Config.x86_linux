@@ -1,6 +1,7 @@
 # -*- Mode: makefile -*-
 include Config.x86_common
 
+CC = clang
 CPPFLAGS += -m32 -rdynamic -D__NO_CTYPE -D_GNU_SOURCE
 
 UNDEFSYMPATTERN = -Xlinker -u -Xlinker &
