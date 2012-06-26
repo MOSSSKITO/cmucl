@@ -663,6 +663,60 @@ gen_av_mem_age(int gen)
 	generations[gen].bytes_allocated;
 }
 
+#if defined(i386) || defined(__x86_64)
+#define FPU_STATE_SIZE 27
+    /* 
+     * Need 512 byte area, aligned on a 16-byte boundary.  So allocate
+     * 512+16 bytes of space and let the routine adjust use the
+     * appropriate alignment.
+     */
+#define SSE_STATE_SIZE ((512+16)/4)
+
+#define ALLOCATE_FPU_SPACE int fpu_state[SSE_STATE_SIZE];
+
+extern void sse_save(void *);
+extern void sse_restore(void *);
+#elif defined(sparc)
+    /*
+     * 32 (single-precision) FP registers, and the FP state register.
+     * But Sparc V9 has 32 double-precision registers (equivalent to 64
+     * single-precision, but can't be accessed), so we leave enough room
+     * for that.
+     */
+#define FPU_STATE_SIZE (((32 + 32 + 1) + 1)/2)
+#define ALLOCATE_FPU_SPACE    long long fpu_state[FPU_STATE_SIZE];
+
+#elif defined(DARWIN) && defined(__ppc__)
+#define FPU_STATE_SIZE 32
+#define ALLOCATE_FPU_SPACE    long long fpu_state[FPU_STATE_SIZE];
+#endif
+
+void save_fpu_state(void *buffer)
+{
+#if defined(i386) || defined(__x86_64)
+    if (fpu_mode == SSE2) {
+        sse_save(buffer);
+    } else {
+        fpu_save(buffer);
+    }
+#else
+    fpu_save(buffer);
+#endif
+}
+
+void restore_fpu_state(void* buffer)
+{
+#if defined(i386) || defined(__x86_64)
+    if (fpu_mode == SSE2) {
+        sse_restore(buffer);
+    } else {
+        fpu_restore(buffer);
+    }
+#else
+    fpu_restore(buffer);
+#endif
+}
+
 /*
  * The verbose argument controls how much to print out:
  * 0 for normal level of detail; 1 for debugging.
@@ -672,44 +726,14 @@ print_generation_stats(int verbose)
 {
     int i, gens;
 
-#if defined(i386) || defined(__x86_64)
-#define FPU_STATE_SIZE 27
-    /* 
-     * Need 512 byte area, aligned on a 16-byte boundary.  So allocate
-     * 512+16 bytes of space and let the routine adjust use the
-     * appropriate alignment.
-     */
-#define SSE_STATE_SIZE ((512+16)/4)
-    int fpu_state[FPU_STATE_SIZE];
-    int sse_state[SSE_STATE_SIZE];
-
-    extern void sse_save(void *);
-    extern void sse_restore(void *);
-#elif defined(sparc)
-    /*
-     * 32 (single-precision) FP registers, and the FP state register.
-     * But Sparc V9 has 32 double-precision registers (equivalent to 64
-     * single-precision, but can't be accessed), so we leave enough room
-     * for that.
-     */
-#define FPU_STATE_SIZE (((32 + 32 + 1) + 1)/2)
-    long long fpu_state[FPU_STATE_SIZE];
-#elif defined(DARWIN) && defined(__ppc__)
-#define FPU_STATE_SIZE 32
-    long long fpu_state[FPU_STATE_SIZE];
-#endif
+    ALLOCATE_FPU_SPACE;
 
     /*
      * This code uses the FP instructions which may be setup for Lisp so
      * they need to the saved and reset for C.
      */
 
-    fpu_save(fpu_state);
-#if defined(i386) || defined(__x86_64)
-    if (fpu_mode == SSE2) {
-      sse_save(sse_state);
-    }
-#endif    
+    save_fpu_state(fpu_state);
 
     /* Number of generations to print out. */
     if (verbose)
@@ -763,12 +787,8 @@ print_generation_stats(int verbose)
     }
     fprintf(stderr, "   Total bytes alloc=%ld\n", bytes_allocated);
 
-    fpu_restore(fpu_state);
-#if defined(i386) || defined(__x86_64)
-    if (fpu_mode == SSE2) {
-      sse_restore(sse_state);
-    }
-#endif
+
+    restore_fpu_state(fpu_state);
 }
 
 /* Get statistics that are kept "on the fly" out of the generation
@@ -8000,6 +8020,11 @@ void do_pending_interrupt(void);
 char *
 alloc(int nbytes)
 {
+    void *new_obj;
+    ALLOCATE_FPU_SPACE;
+
+    save_fpu_state(fpu_state);
+
 #if !(defined(sparc) || (defined(DARWIN) && defined(__ppc__)))
     /*
      * *current-region-free-pointer* is the same as alloc-tn (=
@@ -8014,14 +8039,13 @@ alloc(int nbytes)
     bytes_allocated_sum += nbytes;
 
     for (;;) {
-	void *new_obj;
 	char *new_free_pointer = (void *) (get_current_region_free() + nbytes);
 
 	if (new_free_pointer <= boxed_region.end_addr) {
 	    /* Allocate from the current region. */
 	    new_obj = (void *) get_current_region_free();
 	    set_current_region_free((lispobj) new_free_pointer);
-	    return new_obj;
+            break;
 	} else if (bytes_allocated <= auto_gc_trigger) {
 	    /* Call gc_alloc.  */
 	    boxed_region.free_pointer = (void *) get_current_region_free();
@@ -8031,7 +8055,7 @@ alloc(int nbytes)
 	    new_obj = gc_alloc(nbytes);
 	    set_current_region_free((lispobj) boxed_region.free_pointer);
 	    set_current_region_end((lispobj) boxed_region.end_addr);
-	    return new_obj;
+            break;
 	} else {
 	    /* Run GC and try again.  */
 	    auto_gc_trigger *= 2;
@@ -8043,6 +8067,10 @@ alloc(int nbytes)
 	    set_pseudo_atomic_atomic();
 	}
     }
+
+    restore_fpu_state(fpu_state);
+
+    return new_obj;
 }
 
 char *
