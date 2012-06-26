@@ -7,6 +7,7 @@ include Config.x86_common
 # from Xcode 4.  Xcode 3 (for OSX 10.5 and 10.6) has gcc-4.2, so this
 # shouldn't be a problem.
 CC = gcc-4.2
+#CC = clang
 
 # Compile code that will run on OSX 10.4 (Tiger)
 MIN_VER = -mmacosx-version-min=10.4
