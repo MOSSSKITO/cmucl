@@ -53,7 +53,7 @@
 	       (inst mov
 		     (make-ea :dword :base object
 			      :disp (- (* offset word-bytes) lowtag))
-		     (+ nil-value (static-symbol-offset val))))
+		     (+ nil-object (static-symbol-offset val))))
 	      (character
 	       (inst mov
 		     (make-ea :dword :base object

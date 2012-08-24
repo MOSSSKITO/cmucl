@@ -239,7 +239,7 @@
     (unless (zerop amount)
       (let ((delta (logandc2 (+ amount 3) 3)))
 	(inst add (make-ea :dword
-			   :disp (+ nil-value
+			   :disp (+ nil-object
 				    (static-symbol-offset '*alien-stack*)
 				    (ash symbol-value-slot word-shift)
 				    (- other-pointer-type)))

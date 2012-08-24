@@ -76,12 +76,12 @@
 ;;;; Macros to generate useful values.
 
 (defmacro load-symbol (reg symbol)
-  `(inst mov ,reg (+ nil-value (static-symbol-offset ,symbol))))
+  `(inst mov ,reg (+ nil-object (static-symbol-offset ,symbol))))
 
 (defmacro load-symbol-value (reg symbol)
   `(inst mov ,reg
 	 (make-ea :dword
-		  :disp (+ nil-value
+		  :disp (+ nil-object
 			   (static-symbol-offset ',symbol)
 			   (ash symbol-value-slot word-shift)
 			   (- other-pointer-type)))))
@@ -89,7 +89,7 @@
 (defmacro store-symbol-value (reg symbol)
   `(inst mov
 	 (make-ea :dword
-		  :disp (+ nil-value
+		  :disp (+ nil-object
 			   (static-symbol-offset ',symbol)
 			   (ash symbol-value-slot word-shift)
 			   (- other-pointer-type)))
@@ -97,7 +97,7 @@
 
 (defun make-symbol-value-ea (symbol)
   (make-ea :dword
-	   :disp (+ nil-value
+	   :disp (+ nil-object
 		    (static-symbol-offset symbol)
 		    (ash symbol-value-slot word-shift)
 		    (- other-pointer-type))))
@@ -318,13 +318,13 @@
   (let ((label (gensym "LABEL-")))
     `(let ((,label (gen-label)))
       (when *enable-pseudo-atomic*
-	(inst mov (make-ea :byte :disp (+ nil-value
+	(inst mov (make-ea :byte :disp (+ nil-object
 					  (static-symbol-offset
 					   'lisp::*pseudo-atomic-interrupted*)
 					  (ash symbol-value-slot word-shift)
 					  (- other-pointer-type)))
 	      0)
-	(inst mov (make-ea :byte :disp (+ nil-value
+	(inst mov (make-ea :byte :disp (+ nil-object
 					  (static-symbol-offset
 					   'lisp::*pseudo-atomic-atomic*)
 					  (ash symbol-value-slot word-shift)
@@ -332,14 +332,14 @@
 	      (fixnumize 1)))
       ,@forms
       (when *enable-pseudo-atomic*
-	(inst mov (make-ea :byte :disp (+ nil-value
+	(inst mov (make-ea :byte :disp (+ nil-object
 					  (static-symbol-offset
 					   'lisp::*pseudo-atomic-atomic*)
 					  (ash symbol-value-slot word-shift)
 					  (- other-pointer-type)))
 	      0)
 	(inst cmp (make-ea :byte
-			   :disp (+ nil-value
+			   :disp (+ nil-object
 				    (static-symbol-offset
 				     'lisp::*pseudo-atomic-interrupted*)
 				    (ash symbol-value-slot word-shift)

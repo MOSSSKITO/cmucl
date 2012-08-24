@@ -225,10 +225,10 @@
 (defconstant target-foreign-linkage-entry-size
   (c:backend-foreign-linkage-entry-size *target-backend*)) ;In bytes.  Duh.
 
-;;; Given that NIL is the first thing allocated in static space, we
-;;; know its value at compile time:
-;;; 
-(defparameter nil-value (+ target-static-space-start #xB))
+;; Immediate nil, which is an other-immediate-0
+(defparameter nil-value (+ other-immediate-0-type 0))
+;; The nil object
+(defparameter nil-object (+ target-static-space-start #xB))
 
 
 ;;;; Other random constants.
