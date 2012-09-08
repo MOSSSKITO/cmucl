@@ -116,11 +116,22 @@
        `(inst mov ,n-target
 	      (make-ea :byte :base ,n-source :disp (+ ,n-offset 3)))))))
 
-(defmacro load-foreign-data-symbol (reg name )
-  #+linkage-table `(inst mov ,reg (make-fixup (extern-alien-name ,name)
-					      :foreign-data))
-  #-linkage-table `(inst lea ,reg (make-fixup (extern-alien-name ,name)
-					      :foreign)))
+#-linkage-table
+(defmacro load-foreign-data-symbol (reg name)
+  (declare (ignore temp-reg))
+  `(inst lea ,reg (make-fixup (extern-alien-name ,name)
+			      :foreign)))
+
+#+linkage-table
+(defmacro load-foreign-data-symbol (reg name)
+  `(progn
+     (inst mov ,reg (make-ea :dword
+			     :disp (+ nil-value
+				      (static-symbol-offset '*foreign-linkage-space-start*)
+				      (ash symbol-value-slot word-shift)
+				      (- other-pointer-type))))
+     (inst add ,reg (make-fixup (extern-alien-name ,name)
+				:foreign-data))))
 
 ;;;; Allocation helpers
 

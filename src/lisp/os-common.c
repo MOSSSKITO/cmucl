@@ -171,12 +171,21 @@ void
 os_foreign_linkage_init(void)
 {
 #ifdef LINKAGE_TABLE
-    lispobj linkage_data_obj = SymbolValue(LINKAGE_TABLE_DATA);
+    os_vm_address_t linkage_space_addr;
+
+    lispobj linkage_data_obj;
     struct array *linkage_data = 0;
     long table_size = 0;
     struct vector *data_vector = 0;
     long i;
 
+    linkage_space_addr = ensure_space(NULL, FOREIGN_LINKAGE_SPACE_SIZE);
+    fprintf(stderr, "linkage address = %p\n", linkage_space_addr);
+    fprintf(stderr, "FOREIGN_LINKAGE = %p\n", FOREIGN_LINKAGE_SPACE_START);
+    
+    SetSymbolValue(FOREIGN_LINKAGE_SPACE_START, linkage_space_addr);
+
+    linkage_data_obj = SymbolValue(LINKAGE_TABLE_DATA);
     linkage_data = (struct array *) PTR(linkage_data_obj);
     table_size = fixnum_value(linkage_data->fill_pointer);
     data_vector = (struct vector *) PTR(linkage_data->data);
@@ -194,7 +203,7 @@ os_foreign_linkage_init(void)
 
         convert_lisp_string(c_symbol_name, symbol_name->data, (symbol_name->length >> 2));
 
-#if 0
+#if 1
         fprintf(stderr, "i =%2d:  %s\n", i, c_symbol_name);
         {
             int k;
@@ -542,3 +551,11 @@ os_guard_control_stack(int zone, int guard)
 }
 
 #endif /* not RED_ZONE_HIT */
+
+char *
+symbol_value_sap(lispobj sym)
+{
+    struct sap *sap_ptr = (struct sap *) (SymbolValue(sym) - type_OtherPointer);;
+
+    return sap_ptr->pointer;
+}

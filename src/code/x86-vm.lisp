@@ -523,13 +523,13 @@
 (progn
 (defun lisp::foreign-symbol-address-aux (name flavor)
   (let ((entry-num (lisp::register-foreign-linkage name flavor)))
-    (+ #.vm:target-foreign-linkage-space-start
+    (+ (sys:sap-int vm::*foreign-linkage-space-start*)
        (* entry-num vm:target-foreign-linkage-entry-size))))
 
 (defun lisp::find-foreign-symbol (addr)
   (declare (type (unsigned-byte 32) addr))
-  (when (>= addr vm:target-foreign-linkage-space-start)
-    (let ((entry (/ (- addr vm:target-foreign-linkage-space-start)
+  (when (>= addr (sys:sap-int *foreign-linkage-space-start*))
+    (let ((entry (/ (- addr (sys:sap-int vm::*foreign-linkage-space-start*))
 		    vm:target-foreign-linkage-entry-size)))
       (when (< entry (lisp::foreign-linkage-symbols))
 	(lisp::foreign-linkage-entry entry)))))

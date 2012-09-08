@@ -836,10 +836,6 @@ main(int argc, const char *argv[], const char *envp[])
     fpu_mode = fpu_type;
 #endif
 
-#if defined LINKAGE_TABLE
-    os_foreign_linkage_init();
-#endif /* LINKAGE_TABLE */
-
 #if defined GENCGC
     gencgc_pickup_dynamic();
 #else
@@ -871,6 +867,10 @@ main(int argc, const char *argv[], const char *envp[])
     SetSymbolValue(PSEUDO_ATOMIC_ATOMIC, make_fixnum(1));
     SetSymbolValue(PSEUDO_ATOMIC_INTERRUPTED, make_fixnum(0));
 #endif
+
+#if defined LINKAGE_TABLE
+    os_foreign_linkage_init();
+#endif /* LINKAGE_TABLE */
 
     /* Convert the argv and envp to something Lisp can grok. */
     SetSymbolValue(LISP_COMMAND_LINE_LIST, alloc_str_list(argv));
