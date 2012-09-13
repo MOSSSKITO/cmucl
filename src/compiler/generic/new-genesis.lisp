@@ -2173,7 +2173,7 @@
 					     type
 					     *cold-linkage-table*
 					     *cold-foreign-hash*)))
-    (+ (c:backend-foreign-linkage-space-start c:*backend*)
+    (+ #-x86 (c:backend-foreign-linkage-space-start c:*backend*)
        (* entry-num (c:backend-foreign-linkage-entry-size c:*backend*)))))
 
 #+linkage-table
