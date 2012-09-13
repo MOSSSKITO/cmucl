@@ -225,6 +225,9 @@
 (defconstant target-foreign-linkage-entry-size
   (c:backend-foreign-linkage-entry-size *target-backend*)) ;In bytes.  Duh.
 
+;; This gets filled in with the actual address of the foreign linkage
+;; space in the C runtime.
+(defvar *foreign-linkage-space-start*)
 ;;; Given that NIL is the first thing allocated in static space, we
 ;;; know its value at compile time:
 ;;; 
@@ -371,6 +374,9 @@
       :key-or-value
 
       lisp::*unidata-path*
+
+      vm::*foreign-linkage-space-start*
+
       ;; Spare symbols.  Rename these when you need to add some static
       ;; symbols and don't want to do a cross-compile.
       spare-9

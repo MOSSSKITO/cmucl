@@ -176,10 +176,24 @@ os_foreign_linkage_init(void)
     long table_size = 0;
     struct vector *data_vector = 0;
     long i;
-
+    os_vm_address_t addr;
+    
     linkage_data = (struct array *) PTR(linkage_data_obj);
     table_size = fixnum_value(linkage_data->fill_pointer);
     data_vector = (struct vector *) PTR(linkage_data->data);
+
+    addr = ensure_space(0, FOREIGN_LINKAGE_SPACE_SIZE);
+    fprintf(stderr, "*FOREIGN-LINKAGE-SPACE-START* = %p\n", FOREIGN_LINKAGE_SPACE_START);
+    fprintf(stderr, " addr = %p\n", addr);
+    
+    /*
+     * This is a lie.  addr is a full 32-bit value, but the low bits
+     * are always zero so it looks like a fixnum.  In addition, addr
+     * is unsigned but FOREIGN_LINKAGE_SPACE_START is a signed fixnum.
+     * Any lisp code needs to be careful with that.
+     */
+    SetSymbolValue(FOREIGN_LINKAGE_SPACE_START, addr);
+    
     for (i = 0; i < table_size; i += LINKAGE_DATA_ENTRY_SIZE) {
 	struct vector *symbol_name
 	    = (struct vector *) PTR(data_vector->data[i]);

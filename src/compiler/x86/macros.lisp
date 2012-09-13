@@ -146,6 +146,7 @@
      (inst lea ,temp-tn (make-fixup (extern-alien-name #-sse2 "alloc_overflow_x87"
 						       #+sse2 "alloc_overflow_sse2")
 				    :foreign))
+     (inst add ,temp-tn (make-symbol-value-ea '*foreign-linkage-space-start*))
      (inst call ,temp-tn)
 
      (unless (= (tn-offset ,alloc-tn) #.eax-offset)

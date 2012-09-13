@@ -469,8 +469,7 @@ funcall3(lispobj function, lispobj arg0, lispobj arg1, lispobj arg2)
 void
 arch_make_linkage_entry(long linkage_entry, void *target_addr, long type)
 {
-    char *reloc_addr = (char *) (FOREIGN_LINKAGE_SPACE_START
-
+    char *reloc_addr = (char *) (SymbolValue(FOREIGN_LINKAGE_SPACE_START)
 				 + linkage_entry * LinkageEntrySize);
 
     if (type == 1) {		/* code reference */
@@ -496,10 +495,9 @@ arch_make_linkage_entry(long linkage_entry, void *target_addr, long type)
 void
 arch_make_lazy_linkage(long linkage_entry)
 {
-    char *reloc_addr = (char *) (FOREIGN_LINKAGE_SPACE_START
-
+    char *reloc_addr = (char *) (SymbolValue(FOREIGN_LINKAGE_SPACE_START)
 				 + linkage_entry * LinkageEntrySize);
-    long offset = (char *) (FOREIGN_LINKAGE_SPACE_START) - (reloc_addr + 5);
+    long offset = (char *) (SymbolValue(FOREIGN_LINKAGE_SPACE_START)) - (reloc_addr + 5);
     int i;
 
     *reloc_addr++ = 0xe8;	/* opcode for CALL rel32 */
@@ -518,7 +516,7 @@ arch_make_lazy_linkage(long linkage_entry)
 long
 arch_linkage_entry(unsigned long retaddr)
 {
-    return ((retaddr - 5) - FOREIGN_LINKAGE_SPACE_START) / LinkageEntrySize;
+    return ((retaddr - 5) - SymbolValue(FOREIGN_LINKAGE_SPACE_START)) / LinkageEntrySize;
 }
 #endif /* LINKAGE_TABLE */
 

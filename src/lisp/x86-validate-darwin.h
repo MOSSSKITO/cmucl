@@ -49,7 +49,9 @@
 #define DEFAULT_DYNAMIC_SPACE_SIZE	(0x20000000U)	/* 512MB */
 
 #ifdef LINKAGE_TABLE
+#if 0
 #define FOREIGN_LINKAGE_SPACE_START (LinkageSpaceStart)
+#endif
 #define FOREIGN_LINKAGE_SPACE_SIZE (0x100000)	/* 1MB */
 #endif
 

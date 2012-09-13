@@ -20,6 +20,7 @@
 (in-package :x86)
 (intl:textdomain "cmucl-x86-vm")
 
+#-linkage-table
 (define-vop (print)
   (:args (object :scs (descriptor-reg any-reg)))
   (:temporary (:sc unsigned-reg :offset eax-offset :target result
@@ -44,5 +45,37 @@
     (inst mov (make-ea :dword :base esp-tn :disp 4) temp) 
     (inst lea eax (make-fixup (extern-alien-name "debug_print") :foreign))
     (inst call (make-fixup (extern-alien-name "call_into_c") :foreign))
+    (inst mov esp-tn (make-ea :dword :base esp-tn :disp 4))
+    (move result eax)))
+
+#+linkage-table
+(define-vop (print)
+  (:args (object :scs (descriptor-reg any-reg)))
+  (:temporary (:sc unsigned-reg :offset eax-offset :target result
+	       :from :eval :to :result) eax)
+  (:temporary (:sc unsigned-reg) call-into-c)
+  #+darwin
+  (:temporary (:sc unsigned-reg) temp)
+  (:results (result :scs (descriptor-reg)))
+  (:save-p t)
+  #-darwin
+  (:generator 100
+    (inst push object)
+    (inst lea eax (make-fixup (extern-alien-name "debug_print") :foreign))
+    (inst call (make-fixup (extern-alien-name "call_into_c") :foreign))
+    (inst add esp-tn word-bytes)
+    (move result eax))
+  #+darwin
+  (:generator 100
+    (inst mov temp esp-tn)
+    (inst sub esp-tn 8)
+    (inst and esp-tn #xfffffff0)
+    (inst mov (make-ea :dword :base esp-tn) object)
+    (inst mov (make-ea :dword :base esp-tn :disp 4) temp)
+    (inst lea call-into-c (make-fixup (extern-alien-name "call_into_c") :foreign))
+    (inst add call-into-c (make-symbol-value-ea '*foreign-linkage-space-start*))
+    (inst lea eax (make-fixup (extern-alien-name "debug_print") :foreign))
+    (inst add eax (make-symbol-value-ea '*foreign-linkage-space-start*))
+    (inst call call-into-c)
     (inst mov esp-tn (make-ea :dword :base esp-tn :disp 4))
     (move result eax)))

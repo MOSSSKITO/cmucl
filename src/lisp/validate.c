@@ -20,15 +20,21 @@
 extern void make_holes(void);
 #endif
 
-static void
+os_vm_address_t
 ensure_space(lispobj * start, size_t size)
 {
-    if (os_validate((os_vm_address_t) start, size) == NULL) {
+    os_vm_address_t addr;
+
+    addr = os_validate((os_vm_address_t) start, size);
+    
+    if (addr == NULL) {
 	fprintf(stderr,
 		"ensure_space: Failed to validate %ld bytes at 0x%08lx\n",
 		(unsigned long) size, (unsigned long) start);
 	exit(1);
     }
+
+    return addr;
 }
 
 
@@ -107,8 +113,10 @@ validate(void)
     binding_stack = (lispobj *) BINDING_STACK_START;
     ensure_space(binding_stack, binding_stack_size);
 #ifdef LINKAGE_TABLE
+#if !defined(DARWIN)
     ensure_space((lispobj *) FOREIGN_LINKAGE_SPACE_START,
 		 FOREIGN_LINKAGE_SPACE_SIZE);
+#endif
 #endif
 #ifdef sparc
     make_holes();

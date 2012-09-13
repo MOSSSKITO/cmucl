@@ -8,6 +8,8 @@
 #ifndef _VALIDATE_H_
 #define _VALIDATE_H_
 
+#include "os.h"
+
 #ifdef parisc
 #include "hppa-validate.h"
 #endif
@@ -37,5 +39,6 @@
 #endif
 
 extern void validate(void);
+extern os_vm_address_t ensure_space(lispobj* start, size_t);
 
 #endif /* _VALIDATE_H_ */
