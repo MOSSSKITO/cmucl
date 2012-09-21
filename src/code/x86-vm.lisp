@@ -521,17 +521,25 @@
 
 #+linkage-table
 (progn
+(defun get-linkage-space-start ()
+  (let ((addr (ldb (byte 32 0) (ash vm::*foreign-linkage-space-start* 2))))
+    addr))
+
 (defun lisp::foreign-symbol-address-aux (name flavor)
+  (format t "f-s-a-a: name = ~S flavor ~S~%"
+	  name flavor)
   (let ((entry-num (lisp::register-foreign-linkage name flavor)))
-    (+ #.vm:target-foreign-linkage-space-start
+    (+ (get-linkage-space-start)
        (* entry-num vm:target-foreign-linkage-entry-size))))
 
 (defun lisp::find-foreign-symbol (addr)
   (declare (type (unsigned-byte 32) addr))
-  (when (>= addr vm:target-foreign-linkage-space-start)
-    (let ((entry (/ (- addr vm:target-foreign-linkage-space-start)
+  (when (>= addr (get-linkage-space-start))
+    (let ((entry (/ (- addr (get-linkage-space-start))
 		    vm:target-foreign-linkage-entry-size)))
       (when (< entry (lisp::foreign-linkage-symbols))
+	(format t "f-f-s: addr = #X~X entry = ~X~%"
+		addr entry)
 	(lisp::foreign-linkage-entry entry)))))
 )
 

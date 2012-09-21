@@ -1457,6 +1457,7 @@
 	  value))))
 
 (defun foreign-symbol-address (symbol &key (flavor :code))
+  (format t "f-s-a: sym ~S flavor ~S~%" symbol flavor)
   (let ((maybe-link-table-addr
 	 (foreign-symbol-address-aux (vm:extern-alien-name symbol) flavor)))
     (if (or #-linkage-table t (eq flavor :code))
@@ -1468,12 +1469,18 @@
   (let* ((kind (pop-stack))
 	 (code-object (pop-stack))
 	 (len (read-arg 1))
-	 (sym (make-string len)))
+	 (sym (make-string len))
+	 (foreign-address
+	   (progn
+	     (format t "fop-foreign-fixup kind ~S sym ~S~%" kind sym)
+	     (- (foreign-symbol-address-aux sym :code)
+		#+linkage-table (get-linkage-space-start)
+		#-linkage-table 0))))
     (read-n-bytes *fasl-file* sym 0
 		  (* vm:char-bytes len))
 
     (vm:fixup-code-object code-object (read-arg 4)
-			  (foreign-symbol-address-aux sym :code)
+			  foreign-address
 			  kind)
     code-object))
 
@@ -1481,7 +1488,14 @@
   (let* ((kind (pop-stack))
 	 (code-object (pop-stack))
 	 (len (read-arg 1))
-	 (sym (make-string len)))
+	 (sym (make-string len))
+	 (foreign-address
+	   (progn
+	     (format t "fop-foreign-fixup kind ~S sym ~S~%" kind sym)
+
+	     (- (foreign-symbol-address-aux sym :data)
+		#+linkage-table (get-linkage-space-start)
+		#-linkage-table 0))))
     (read-n-bytes *fasl-file* sym 0
 		  (* vm:char-bytes len))
 

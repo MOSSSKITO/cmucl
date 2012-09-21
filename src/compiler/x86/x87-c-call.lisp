@@ -41,6 +41,12 @@
   (:generator 0 
     (cond ((policy node (> space speed))
 	   (move eax function)
+	   #+linkage-table
+	   (progn
+	     (inst lea ecx (make-fixup (extern-alien-name "call_into_c") :foreign))
+	     (inst add ecx (make-symbol-value-ea '*foreign-linkage-space-start*))
+	     (inst call ecx))
+	   #-linkage-table
 	   (inst call (make-fixup (extern-alien-name "call_into_c") :foreign)))
 	  (t
 	   ;; Setup the NPX for C; all the FP registers need to be

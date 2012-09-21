@@ -38,14 +38,20 @@
   (:node-var node)
   (:vop-var vop)
   (:save-p t)
-  (:ignore args ecx edx)
+  (:ignore args edx)
   (:guard (backend-featurep :sse2))
   (:generator 0 
-    (cond ((policy node (> space speed))
+    (cond ((and nil (policy node (> space speed)))
 	   (move eax function)
 	   ;; call_into_c has arranged for the result to be in ST(0)
 	   ;; (aka fr0), so there's nothing we need to do now.  The
 	   ;; compiler will move fr0 to the appropriate XMM register.
+	   #+linkage-table
+	   (progn
+	     (inst lea ecx (make-fixup (extern-alien-name "call_into_c") :foreign))
+	     (inst add ecx (make-symbol-value-ea '*foreign-linkage-space-start*))
+	     (inst call ecx))
+	   #-linkage-table
 	   (inst call (make-fixup (extern-alien-name "call_into_c") :foreign)))
 	  (t
 	   ;; Setup the NPX for C; all the FP registers need to be

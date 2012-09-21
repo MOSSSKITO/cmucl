@@ -193,9 +193,9 @@
 				    ,@(new-args))))))
 	(c::give-up))))
 
+#-linkage-table
 (define-vop (foreign-symbol-code-address)
-  (:translate #+linkage-table foreign-symbol-code-address
-	      #-linkage-table foreign-symbol-address)
+  (:translate  foreign-symbol-address)
   (:policy :fast-safe)
   (:args)
   (:arg-types (:constant simple-string))
@@ -206,6 +206,23 @@
    (inst lea res (make-fixup (extern-alien-name foreign-symbol)
 			     :foreign))))
 
+#+linkage-table
+(define-vop (foreign-symbol-code-address)
+  (:translate foreign-symbol-code-address)
+  (:policy :fast-safe)
+  (:args)
+  (:arg-types (:constant simple-string))
+  (:info foreign-symbol)
+  (:results (res :scs (sap-reg)))
+  (:result-types system-area-pointer)
+  (:temporary (:sc unsigned-reg) base-addr)
+  (:generator 2
+    (inst lea base-addr (make-fixup (extern-alien-name foreign-symbol)
+				    :foreign))
+    (inst add base-addr (make-symbol-value-ea '*foreign-linkage-space-start*))
+    (inst mov res base-addr)))
+
+#-linkage-table
 (define-vop (foreign-symbol-data-address)
   (:translate foreign-symbol-data-address)
   (:policy :fast-safe)
@@ -217,6 +234,22 @@
   (:generator 2
    (inst mov res (make-fixup (extern-alien-name foreign-symbol)
 			     :foreign-data))))
+
+#+linkage-table
+(define-vop (foreign-symbol-data-address)
+  (:translate foreign-symbol-data-address)
+  (:policy :fast-safe)
+  (:args)
+  (:arg-types (:constant simple-string))
+  (:info foreign-symbol)
+  (:results (res :scs (sap-reg)))
+  (:result-types system-area-pointer)
+  (:temporary (:sc unsigned-reg) base-addr)
+  (:generator 2
+    (inst lea base-addr (make-fixup (extern-alien-name foreign-symbol)
+				    :foreign-data))
+    (inst add base-addr (make-symbol-value-ea '*foreign-linkage-space-start*))
+    (inst mov res base-addr)))
 
 (define-vop (alloc-alien-stack-space)
   (:info amount)

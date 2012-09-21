@@ -46,6 +46,8 @@
 				     (if make-linkage-stub-p
 					 system::*global-table*
 					 nil))))
+    (format t "add-foreign-linkage:  sym = ~S type ~S entry ~D~%"
+	    symbol-name type entry-num)
     (when make-linkage-stub-p
       #-building-cross-compiler
       (let ((result (alien:alien-funcall (alien:extern-alien
@@ -68,6 +70,8 @@
 				 (table *linkage-table-data* tablep)
 				 (linkage-hash *foreign-linkage-symbols*))
   (let ((entry-num (gethash symbol-name linkage-hash)))
+    (format t "register-foreign-linkage ~S type ~S entry ~S~%"
+	    symbol-name type entry-num)
     (if entry-num
 	entry-num
 	(add-foreign-linkage symbol-name

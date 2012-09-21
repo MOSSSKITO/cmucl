@@ -113,11 +113,12 @@ validate(void)
     binding_stack = (lispobj *) BINDING_STACK_START;
     ensure_space(binding_stack, binding_stack_size);
 #ifdef LINKAGE_TABLE
-#if !defined(DARWIN)
+#if !defined(i386)
     ensure_space((lispobj *) FOREIGN_LINKAGE_SPACE_START,
 		 FOREIGN_LINKAGE_SPACE_SIZE);
 #endif
 #endif
+
 #ifdef sparc
     make_holes();
 #endif

@@ -185,6 +185,8 @@ os_foreign_linkage_init(void)
     addr = ensure_space(0, FOREIGN_LINKAGE_SPACE_SIZE);
     fprintf(stderr, "*FOREIGN-LINKAGE-SPACE-START* = %p\n", FOREIGN_LINKAGE_SPACE_START);
     fprintf(stderr, " addr = %p\n", addr);
+    fprintf(stderr, " pid = %d\n", getpid());
+    
     
     /*
      * This is a lie.  addr is a full 32-bit value, but the low bits
@@ -353,12 +355,13 @@ os_link_one_symbol(long entry)
     
     target_addr = os_dlsym(c_symbol_name,
 			   data_vector->data[table_index + 2]);
-#if 0
+#if 1
     fprintf(stderr, "Looked up %s symbol %s at %lx\n",
 	    type == LINKAGE_CODE_TYPE ? "code" : "data",
 	    c_symbol_name, (unsigned long) target_addr);
 #endif
     if (!target_addr) {
+      sleep(10);
 	undefined_foreign_symbol_trap((lispobj) data_vector->data[table_index]);
     }
     arch_make_linkage_entry(entry, target_addr, type);

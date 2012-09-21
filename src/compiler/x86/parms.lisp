@@ -227,7 +227,9 @@
 
 ;; This gets filled in with the actual address of the foreign linkage
 ;; space in the C runtime.
-(defvar *foreign-linkage-space-start*)
+(declaim (fixnum *foreign-linkage-space-start*))
+(defvar *foreign-linkage-space-start* 0)
+
 ;;; Given that NIL is the first thing allocated in static space, we
 ;;; know its value at compile time:
 ;;; 

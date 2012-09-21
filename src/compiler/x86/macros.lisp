@@ -117,8 +117,11 @@
 	      (make-ea :byte :base ,n-source :disp (+ ,n-offset 3)))))))
 
 (defmacro load-foreign-data-symbol (reg name )
-  #+linkage-table `(inst mov ,reg (make-fixup (extern-alien-name ,name)
-					      :foreign-data))
+  #+linkage-table
+  `(progn
+     (inst lea ,reg (make-fixup (extern-alien-name ,name)
+				:foreign-data))
+     (inst add ,reg (make-symbol-value-ea '*foreign-linkage-space-start*)))
   #-linkage-table `(inst lea ,reg (make-fixup (extern-alien-name ,name)
 					      :foreign)))
 

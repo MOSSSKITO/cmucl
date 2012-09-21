@@ -2173,6 +2173,9 @@
 					     type
 					     *cold-linkage-table*
 					     *cold-foreign-hash*)))
+    (unless (= entry-num 1)
+      (format t "c-r-f-l: sym ~S type ~S entry-num ~S offset ~X~%"
+	      sym type entry-num (* entry-num (c:backend-foreign-linkage-entry-size c:*backend*))))
     (+ #-x86 (c:backend-foreign-linkage-space-start c:*backend*)
        (* entry-num (c:backend-foreign-linkage-entry-size c:*backend*)))))
 
