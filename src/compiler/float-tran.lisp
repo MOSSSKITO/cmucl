@@ -192,12 +192,12 @@
   '(let ((res (%unary-ftruncate (/ x y))))
      (values res (- x (* y res)))))
 
-#+sparc
+#+(or sparc (and x86 sse2))
 (defknown fast-unary-ftruncate ((or single-float double-float))
   (or single-float double-float)
   (movable foldable flushable))
 
-#+sparc
+#+(or sparc (and x86 sse2))
 (defoptimizer (fast-unary-ftruncate derive-type) ((f))
   (one-arg-derive-type f
 		       #'(lambda (n)
@@ -210,10 +210,9 @@
 ;; if x is known to be of the right type.  Also, if the result is
 ;; known to fit in the same range as a (signed-byte 32), convert this
 ;; to %unary-truncate, which might be a single instruction, and float
-;; the result.  However, for sparc, we have a vop to do this so call
-;; that, and for Sparc V9, we can actually handle a 64-bit integer
-;; range.
-
+;; the result.  However, for sparc and x86, we have a vop to do this
+;; so call that, and for Sparc V9, we can actually handle a 64-bit
+;; integer range.
 (macrolet ((frob (ftype func)
 	     `(deftransform %unary-ftruncate ((x) (,ftype))
 	       (let* ((x-type (continuation-type x))
@@ -224,14 +223,19 @@
 		 (if (and (numberp lo) (numberp hi)
 			  (< limit-lo lo)
 			  (< hi limit-hi))
-		     #-sparc '(let ((result (coerce (%unary-truncate x) ',ftype)))
-			        (if (zerop result)
-				    (* result x)
-				    result))
-		     #+sparc '(let ((result (fast-unary-ftruncate x)))
-			        (if (zerop result)
-				    (* result x)
-				    result))
+		     #-(or sparc (and x86 sse2))
+		     '(let ((result (coerce (%unary-truncate x) ',ftype)))
+		       ;; Multiply by x when result is 0 so that we
+		       ;; get the correct signed zero to match what
+		       ;; ftruncate in float.lisp would return.
+		       (if (zerop result)
+			   (* result x)
+			   result))
+		     #+(or sparc (and x86 sse2))
+		     '(let ((result (fast-unary-ftruncate x)))
+		       (if (zerop result)
+			   (* result x)
+			   result))
 		     '(,func x))))))
   (frob single-float %unary-ftruncate/single-float)
   (frob double-float %unary-ftruncate/double-float))
@@ -355,7 +359,7 @@
 (defknown double-float-low-bits (double-float) (unsigned-byte 32)
   (movable foldable flushable))
 
-#+(or sparc ppc)
+#+(or sparc ppc (and x86 sse2))
 (defknown double-float-bits (double-float)
   (values (signed-byte 32) (unsigned-byte 32))
   (movable foldable flushable))
@@ -553,7 +557,7 @@
 ;;;
 (defoptimizer (scale-float derive-type) ((f ex))
   (two-arg-derive-type f ex #'scale-float-derive-type-aux
-		       #'scale-float t))
+		       #'scale-float))
 	     
 ;;; toy@rtp.ericsson.se:
 ;;;
@@ -640,11 +644,9 @@
   (unless (constant-continuation-p y)
     (give-up))
   (let ((val (continuation-value y)))
-    (multiple-value-bind (frac exp sign)
-	(decode-float val)
-      (unless (= frac 0.5)
-	(give-up))
-      `(* x (float (/ ,val) x)))))
+    (unless (= (decode-float val) 0.5)
+      (give-up))
+    `(* x (float (/ ,val) x))))
 
 ;; Convert 2*x to x+x.
 (deftransform * ((x y) (float real) * :when :both)

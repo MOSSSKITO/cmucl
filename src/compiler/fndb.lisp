@@ -851,13 +851,11 @@
   (sequence stringable) simple-string (flushable))
 
 (defknown (string-upcase string-downcase)
-  (stringable &key (:start index) (:end sequence-end) #+unicode (:casing case-conversion-type))
+  (stringable &key (:start index) (:end sequence-end))
   simple-string (flushable))
 
 (defknown (string-capitalize)
-  (stringable &key (:start index) (:end sequence-end)
-	      #+unicode (:casing case-conversion-type)
-	      #+unicode (:unicode-word-break boolean))
+  (stringable &key (:start index) (:end sequence-end))
   simple-string (flushable))
 
 (defknown (nstring-upcase nstring-downcase nstring-capitalize)
@@ -1158,9 +1156,7 @@
    (:xref t))
   (values (or pathname null) boolean boolean))
 
-(defknown disassemble ((or callable cons)
-		       &key (:stream stream) (:backend backend)
-		       (:use-labels t))
+(defknown disassemble ((or callable cons))
   (values))
 
 (defknown documentation (t symbol)

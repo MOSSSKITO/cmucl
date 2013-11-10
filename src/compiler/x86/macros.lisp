@@ -110,10 +110,10 @@
 	      (n-offset offset))
     (ecase (backend-byte-order *target-backend*)
       (:little-endian
-       `(inst mov ,n-target
+       `(inst movzx ,n-target
 	      (make-ea :byte :base ,n-source :disp ,n-offset)))
       (:big-endian
-       `(inst mov ,n-target
+       `(inst movzx ,n-target
 	      (make-ea :byte :base ,n-source :disp (+ ,n-offset 3)))))))
 
 (defmacro load-foreign-data-symbol (reg name )
@@ -526,7 +526,6 @@
 		    :from (:argument 2) :to :result :target result) eax)
        (:results (result :scs ,scs))
        (:result-types ,el-type)
-       (:guard (backend-featurep :i486))
        (:generator 5
 	 (move eax old-value)
 	 (inst cmpxchg (make-ea :dword :base object :index index :scale 1
@@ -546,7 +545,6 @@
 		    :from (:argument 1) :to :result :target result)  eax)
        (:results (result :scs ,scs))
        (:result-types ,el-type)
-       (:guard (backend-featurep :i486))
        (:generator 4
 	 (move eax old-value)
 	 (inst cmpxchg (make-ea :dword :base object
