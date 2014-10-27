@@ -688,13 +688,18 @@
 	  (:absolute
 	   (%enumerate-directories "/" (cdr directory) pathname
 				   verify-existence follow-links
-				   nil function))
+				   0 function))
 	  (:relative
 	   (%enumerate-directories "" (cdr directory) pathname
 				   verify-existence follow-links
-				   nil function)))
+				   0 function)))
 	(%enumerate-files "" pathname verify-existence function))))
 
+(defvar *max-symlinks-visited*
+  75
+  "Maximum number of symlinks visited before %enumerate-directories
+  gives up")
+  
 ;;; %enumerate-directories  --   Internal
 ;;;
 ;;; The directory node and device numbers are maintained for the current path
@@ -709,13 +714,15 @@
 		    (unix:unix-lstat ,name)))
 	     (with-directory-node-noted ((head) &body body)
 	       `(multiple-value-bind (res dev ino mode)
-		    (unix-xstat ,head)
+		    (if follow-links
+			(unix:unix-lstat ,head))
+		  (declare (ignore dev ino))
 		  ;; Even if the directory does not exist, we want to
 		  ;; continue recursing.
-		  (let ((nodes (if (and res (eql (logand mode unix:s-ifmt)
-						 unix:s-ifdir))
-				   (cons (cons dev ino) nodes)
-				   nodes)))
+		  (when (and res (eql (logand mode unix:s-ifmt)
+				      unix:s-iflnk))
+		    (incf nodes))
+		  (unless (> nodes *max-symlinks-visited*)
 		    ,@body)))
 	     (do-directory-entries ((name directory) &body body)
 	       `(let ((dir (unix:open-dir ,directory)))
@@ -748,28 +755,24 @@
 	       (let ((subdir (concatenate 'string head name)))
 		 (multiple-value-bind (res dev ino mode)
 		     (unix-xstat subdir)
-		   (declare (type (or fixnum null) mode))
+		   (declare (type (or fixnum null) mode)
+			    (ignore dev ino))
 		   (when (and res (eql (logand mode unix:s-ifmt) unix:s-ifdir))
-		     (unless (dolist (dir nodes nil)
-			       (when (and (eql (car dir) dev)
-					  (eql (cdr dir) ino))
-				 (return t)))
-		       (let ((nodes (cons (cons dev ino) nodes))
-			     (subdir (concatenate 'string subdir "/")))
-			 (%enumerate-directories subdir tail pathname
-						 verify-existence follow-links
-						 nodes function))))))))
+		     (let ((subdir (concatenate 'string subdir "/")))
+		       (%enumerate-directories subdir tail pathname
+					       verify-existence follow-links
+					       nodes function)))))))
 	    ((or pattern (member :wild))
 	     (do-directory-entries (name head)
 	       (when (or (eq piece :wild) (pattern-matches piece name))
 		 (let ((subdir (concatenate 'string head name)))
 		   (multiple-value-bind (res dev ino mode)
 		       (unix-xstat subdir)
-		     (declare (type (or fixnum null) mode))
+		     (declare (type (or fixnum null) mode)
+			      (ignore dev ino))
 		     (when (and res
 				(eql (logand mode unix:s-ifmt) unix:s-ifdir))
-		       (let ((nodes (cons (cons dev ino) nodes))
-			     (subdir (concatenate 'string subdir "/")))
+		       (let ((subdir (concatenate 'string subdir "/")))
 			 (%enumerate-directories subdir (rest tail) pathname
 						 verify-existence follow-links
 						 nodes function))))))))

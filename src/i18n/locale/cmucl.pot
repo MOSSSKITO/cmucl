@@ -9859,6 +9859,12 @@ msgstr ""
 
 #: src/code/filesys.lisp
 msgid ""
+"Maximum number of symlinks visited before %enumerate-directories\n"
+"  gives up"
+msgstr ""
+
+#: src/code/filesys.lisp
+msgid ""
 "Convert PATHNAME into a string that can be used with UNIX system calls.\n"
 "   Search-lists and wild-cards are expanded. If optional argument\n"
 "   FOR-INPUT is true and PATHNAME doesn't exist, NIL is returned.\n"
