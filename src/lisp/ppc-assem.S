@@ -232,11 +232,8 @@ x:
 
 	/* Function is an indirect closure */
 	lwz reg_CODE,CLOSURE_FUNCTION_OFFSET(reg_LEXENV)
-	/*
-	 * The 6 is vm:function-code-offset, the 4 is
-	 * the number of bytes in a lispobj.
-	 */
-	addi reg_LIP,reg_CODE,6*4-type_FunctionPointer
+
+	addi reg_LIP,reg_CODE,FUNCTION_CODE_OFFSET
 	mtctr reg_LIP
 	slwi reg_NARGS,reg_NL2,2
 	bctr
